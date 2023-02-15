@@ -7,15 +7,15 @@
 
 #define size = 1000
 
-
-
-
-
+// using  /proc/cpuinfo
 
 int main(int argc, char *argv[]){
 
     FILE *fp;
-    char line [size];
+    char line_size[size];
+
+    int Cpus;
+    int cache;
 
     fp=fopen("/proc/cpuinfo", "r");
 
@@ -24,6 +24,12 @@ int main(int argc, char *argv[]){
         fprintf(stderr,"Can not open /proc/self");
         return 1;
 
+    }
+
+while(fgets(line_size,size,fp)!=NULL){
+    if(strstr(line_size, "the processor:")!=NULL){
+        Cpus++;
+        }
     }
 
 }
