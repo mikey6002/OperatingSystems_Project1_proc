@@ -1,0 +1,15 @@
+1.  Which proc files you are thinking of using for myps? (hint: look at what the flags require you to know about each process)
+When tackling the myps.c project some /proc commands needed for myps.c are: 
+ /proc[pid/stat] - From what I read in the man pages is that this command has information about a process using its PID which has parent process ID, state,CPU time, and memory usage
+ /proc[pid/statm] - This command provides info about memory usage that are measured in pages which are : program size, resident size, numbner of  shared pages,text , data and dirt pages
+ /proc[pid/cmdline] - On the man pages states that it is just an Argument(s) that are passed during boot up
+ /proc/meminfo - This command shows the system's memory usage as well, but includes total memory, free memory and what programs are occupying the memory 
+ /proc/cpuinfo - This command is used to get info of the CPU which shows the number of CPU's, information about the vendor, and the model of the CPU
+
+2.  How will you parse these files? (hint: use the cat command to see the initial outline of the proc file and then do some research about the internal structure)
+I would do something like running cat/proc/cpuinfo in the terminal to get an idea of if the contents and structure of the CPU and number of CPUs. In C I might need to use some basic file functions. And to parse the files I am thinking of using some string manipulation functions that I used in 2107; I'm not too sure but will need more research
+
+
+3. How you plan to do activity (4) Begin design of 'warmup' of /cpuinfo and /meminfo
+I will start by doing the reading assignments closely this time since it was hinted to me multiple times that it would make this assignment easier as well as my life easier. 
+ 
