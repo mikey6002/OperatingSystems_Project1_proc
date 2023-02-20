@@ -5,14 +5,14 @@
 
 
 
-int main(int argc, char *argv[]){
+int main(void){
 
     FILE *fp;
     fp = fopen("/proc/meminfo","r");
 
 if(fp ==NULL){
-    fprintf("There has been a error with meminfo");
-    exit(1);
+    printf("There has been a error with meminfo");
+    return 1;
 }
 char arrays [300];
 
