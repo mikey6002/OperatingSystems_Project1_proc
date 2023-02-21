@@ -14,25 +14,31 @@ if(fp ==NULL){
     printf("There has been a error with meminfo");
     return 1;
 }
-char arrays [300];
 
-unsigned long mem_total = 0; 
-unsigned long mem_free = 0; 
-unsigned long buffers = 0;
+char *size = NULL;
+size_t len = 0;
+ssize_t read;
+int buffer = 0;
 
-while(fgets(arrays,sizeof(arrays),fp)!=NULL){
-    if(sscanf(arrays,"Memory total: %lu kB", &mem_total)==1){
-        //total memory size 
-    }else if(sscanf(arrays,"Memory Free: %lu kB", &mem_free)==1){
-        } else if(sscanf(arrays,"Buffers : %lu kB", &buffers)==1){
+// expects arguement type long long int 
+long long mem_free =0;
 
+
+////www.ibm.com/docs/en/zos/2.1.0?topic=functions-read-read-from-file-socket
+ while ((read = getline(&size, &len, fp)) != -1) {
+        if (sscanf(size, "Buffers: %d", &buffer) == 1) {
+            printf("Number of memory buffers: %d\n", buffer);
         }
+       else if (sscanf(size, "MemFree: %lld", &mem_free) == 1) {
+            printf("Free memory: %lld kB\n", mem_free);
+            break;  
+        }
+    
+    
     }
+    free(size);
     fclose(fp);
 
-    printf("Total memory: %lu kB\n", mem_total);
-    printf("Free memory: %lu kB\n", mem_free);
-    printf("Buffers: %lu kB\n", buffers);
 
     return 0;
 }
