@@ -5,36 +5,45 @@
 #include <stdlib.h>
 
 
-#define size = 1000
 
 // using  /proc/cpuinfo
 
-int main(int argc, char *argv[]){
+int main(void){
 
+    //https://www.gnu.org/software/libc/manual/html_node/Processor-Resources.html
+    //determines num of processors
+    long numOf_Processorss = sysconf(_SC_NPROCESSORS_ONLN);
+    printf("num of processors %ld\n",numOf_Processorss);
+
+    // opens file that has cpu info 
     FILE *fp;
-    char line_size[size];
+    char line_size;
+     fp=fopen("/proc/cpuinfo", "r");
 
    
-    fp=fopen("/proc/cpuinfo", "r");
+   
 
     if (fp ==NULL){
         fprintf(stderr,"Can not open /proc/self");
         return 1;
 
     }
+    // read cpuinfo line by line and loof for cache size 
+    char* size =NULL;
+    size_t length = 0;
+    ssize_t read;
+    int cache_size=-1;
 
-     int Cpus=0;
-    int cache=0;
-
-while(fgets(line_size,size,fp)!=NULL){
-    if(strstr(line_size, "the processor:")!=NULL){
-        Cpus++;
-        }else if (strstr(size, "cache size") != NULL) {
-            sscanf(size, "%*s %*s %d", &cache);
-            printf("CPU%d cache size: %d KB\n", Cpus, cache);
+//www.ibm.com/docs/en/zos/2.1.0?topic=functions-read-read-from-file-socket
+// And idea by TA
+while ((read = getline(&size, &length, fp)) != -1) {
+        if (sscanf(size, "cache size : %d", &cache_size) == 1) {
+            printf("Cache size: %d kB\n", cache_size);
         }
     }
 
+    free(size);
     fclose(fp);
 
+    return 0;
 }
