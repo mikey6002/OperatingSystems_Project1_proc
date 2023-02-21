@@ -2,10 +2,10 @@
 #include <dirent.h>
 #include<string.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 
-
-int main(void){
+int main(){
 
     FILE *fp;
     fp = fopen("/proc/meminfo","r");
@@ -29,11 +29,9 @@ long long mem_free =0;
         if (sscanf(size, "Buffers: %d", &buffer) == 1) {
             printf("Number of memory buffers: %d\n", buffer);
         }
-       else if (sscanf(size, "MemFree: %lld", &mem_free) == 1) {
+        if (sscanf(size, "MemFree: %lld", &mem_free) == 1) {
             printf("Free memory: %lld kB\n", mem_free);
-            break;  
         }
-    
     
     }
     free(size);
