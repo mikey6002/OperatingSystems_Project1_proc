@@ -17,7 +17,6 @@ int main(void){
 
     // opens file that has cpu info 
     FILE *fp;
-    char line_size;
      fp=fopen("/proc/cpuinfo", "r");
 
    
