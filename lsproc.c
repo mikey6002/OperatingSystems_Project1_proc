@@ -4,38 +4,39 @@
 #include <string.h>
 #include <sys/stat.h>
 
-// thinking with code from project 0A
 
-int main(){
+// thinking with project 0A
 
-DIR *dir;
+int main() {
+    DIR *dir;
+    struct dirent *entry;
+    char path[6969], cmdline[6969];
 
-struct dirent *entry;
+  
+    dir = opendir("/proc");
 
-char path [69];
-char pid [69];
-char cmd [69];
+    if (dir) {
+    
+        while ((entry = readdir(dir)) != NULL) {
+           
+            if (entry->d_type == DT_DIR && strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+              
+                sprintf(path, "/proc/%s/cmdline", entry->d_name);
 
-
-dir = opendir("/proc");
- 
- if(dir){
-     while(entry != NULL){
-    if (entry->d_type == DT_DIR && strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 && atoi(entry->d_name) != 0) {
-        printf(path, "/proc/%s/cmdline", entry->d_name);
-
+          
                 FILE *fp = fopen(path, "r");
                 if (fp) {
-                   
-                    fgets(cmd, sizeof(cmd), fp);
+                
+                    fgets(cmdline, sizeof(cmdline), fp);
                     fclose(fp);
 
-                    printf("%s: %s\n",  entry->d_name, cmd);
+                    
+                    printf("%s: %s\n", entry->d_name, cmdline);
                 }
+            }
         }
-     }
-
         closedir(dir);
     }
+
     return 0;
 }
