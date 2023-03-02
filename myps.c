@@ -74,7 +74,6 @@ void getProcessList(){
     struct dirent *entry;
     struct stat statbuf;
     dir = opendir("/proc");
-    FILE *fp;
     char path[6969], cmdline[6969], *endptr;
     long process_id;
 
@@ -98,7 +97,11 @@ void getProcessList(){
             perror("stat");
             exit(-1);
             }
-         
+            //Check if the entry is owned by the current user
+            if(statbuf.st_uid == getuid()) {
+                parseStat(pid);
+                parseStatm(pid);
+                }   
             }
         }
     }
@@ -106,6 +109,26 @@ void getProcessList(){
 }
 
 
+
+void parseStat(int pid){
+    FILE *fp;
+    char statFile[1024];
+    char state;
+    int utime;
+    int stime;
+
+
+sprintf(statFile, "/proc/%d/stat", pid);
+    FILE *fp = fopen(statFile,"r");
+
+    if(!fp){
+        perror("Failed to open file");
+        exit(1);
+    }
+
+
+
+}
 
 
 
