@@ -114,9 +114,8 @@ void parseStat(int pid){
     size_t len = 0;
     ssize_t read;
     char state;
-    unsigned long utime, stime;
+    unsigned long utime, stime, cutime, cstime;
     
-
 
     sprintf(statFile, "/proc/%d/stat", pid);
     FILE *fp = fopen(statFile,"r");
@@ -126,22 +125,19 @@ void parseStat(int pid){
         exit(1);
     }
 
-     if((read = getline(&line, &len, fp)) == -1) {
+    if((read = getline(&line, &len, fp)) == -1) {
         perror("getline");
         exit(-1);
     }
 
     //https://www.gnu.org/gnu/gnu.html
-    if(sscanf(line, "%*d %*s %c %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %lu %lu", &state, &utime, &stime) != 3) {
+    if(sscanf(line, "%*d %*s %c %*d %*d %*d %*d %*d %*d %*d %*d %*d %lu %lu %lu %lu", &state, &utime, &stime, &cutime, &cstime) != 5) {
         fprintf(stderr, "Error: Failed to parse %s\n", statFile);
         exit(-1);
     }
 
-        
     printf("%d\t %c\t", pid, state);
 
-
-    
     if(UFlag == 1) {
         printf("%lu\t", utime);
     }
@@ -149,7 +145,10 @@ void parseStat(int pid){
         printf("%lu\t", stime);
     }
 
-   
+    if(vFlag == 1) {
+        printf("%lu\t", cutime+cstime);
+    }
+
     free(line);
     fclose(fp);
 }
