@@ -5,6 +5,9 @@
 #include<sys/types.h>
 #include <dirent.h>
 #include <string.h>
+#include <unistd.h>
+
+
 
 
 int main(int argc, char **argv){
@@ -13,13 +16,18 @@ int main(int argc, char **argv){
     int option;
     int system_time=1;
     int virtualm =1;
-    int pid =-1;
+    int pid = -1;
+    int command_line =1;
+    int display_pid = 0;
     
-
+    //https://linux.die.net/man/3/optarg
     while((option=getopt(argc,argv,"sUSvcp:"))!=1){
         switch(option){
             case 'p':
-                pid =0;
+                display_pid =1;
+                pid=atoi(optarg);
+                break;
+                
             case 's':
                 state =1;
                 break;
@@ -36,14 +44,28 @@ int main(int argc, char **argv){
                 virtualm=1;
                 break;
 
+            case 'c':
+                command_line =0;
+                break;
+
             case '?':
             default :
                 fprintf(stderr, "Usage: %s [-s] [-U] [-S] [-v] [-p pid] \n", argv[0]);
                 exit(1);
         }
     }
+if (optind >= argc) {
+        fprintf(stderr, "Expected argument after options\n");
+        exit(1);
+    }
+}
 
 
+
+
+
+
+/*
 if(dir ==NULL){
     DIR *dir;
     dir = opendir("/proc");
@@ -100,12 +122,12 @@ while ((entry = readdir(dir)) != NULL) {
                 }
             }
         }
-    }
+    
     closedir(dir);
 
 
 
 
     return 0;
-
 }
+*/
