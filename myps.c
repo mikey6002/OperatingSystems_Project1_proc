@@ -6,6 +6,12 @@
 #include <dirent.h>
 #include <string.h>
 #include <unistd.h>
+#include<errno.h>
+#include <sys/stat.h>
+
+    void getProcessList();
+    void parseStat(int pid);
+    void parseStatm(int pid);
 
     char *user;
     int pid;
@@ -22,7 +28,7 @@ int main(int argc, char *argv[]){
     int option;
     
     //https://linux.die.net/man/3/optarg
-    while((option=getopt(argc,argv,"sUSvcp:"))!=1){
+    while((option=getopt(argc,argv,"sUSvcp:"))!=-1){
         switch(option){
             case 'p':
                 pid=atoi(optarg);
@@ -54,11 +60,6 @@ int main(int argc, char *argv[]){
                 exit(1);
         }
     }
-if (optind >= argc) {
-        fprintf(stderr, "Expected argument after options\n");
-        exit(1);
-    }
-
 
 if(pid ==0){
     user = getenv("USER");
@@ -69,56 +70,55 @@ if(pid ==0){
 return 0;
 }
 
-void getProcessList(){
+void getProcessList() {
     DIR *dir;
     struct dirent *entry;
     struct stat statbuf;
+    //Open the /proc directory
     dir = opendir("/proc");
-    char path[6969], cmdline[6969], *endptr;
-    long process_id;
-
-
-
-      if (!dir) {
-        perror("Failed to open directory /proc");
-        exit(1);
+    if(dir == NULL) {
+        perror("opendir");
+        exit(-1);
     }
-
-    while ((entry = readdir(dir)) != NULL) {
-        if(entry->d_type != DT_DIR) {
+    //Loop through all the entries in the /proc directory
+    while((entry = readdir(dir)) != NULL) {
+        //Ignore all entries which are not directories and don't match the specified criteria
+        if(entry->d_type == DT_DIR) {
+            char *endptr;
             long pid = strtol(entry->d_name, &endptr, 10);
         if(pid > 0 && *endptr == '\0') {
             //Concatenate the path of the entry to the /proc directory
-            char path[1024];
-            strcpy(path, "/proc/");
-            strcat(path, entry->d_name);
+            char pathline[1024];
+            strcpy(pathline, "/proc/");
+            strcat(pathline, entry->d_name);
             //Get the status of the entry
-            if(stat(path, &statbuf) == -1) {
+        if(stat(pathline, &statbuf) == -1) {
             perror("stat");
             exit(-1);
             }
-            //Check if the entry is owned by the current user
-            if(statbuf.st_uid == getuid()) {
-                parseStat(pid);
-                parseStatm(pid);
-                }   
-            }
+        //Check if the entry is owned by the current user
+        if(statbuf.st_uid == getuid()) {
+            parseStat(pid);
+            parseStatm(pid);
+        }
         }
     }
-    close(dir);
+    }
+    closedir(dir);
 }
 
 
-
 void parseStat(int pid){
-    FILE *fp;
     char statFile[1024];
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
     char state;
-    int utime;
-    int stime;
+    unsigned long utime, stime;
+    
 
 
-sprintf(statFile, "/proc/%d/stat", pid);
+    sprintf(statFile, "/proc/%d/stat", pid);
     FILE *fp = fopen(statFile,"r");
 
     if(!fp){
@@ -126,78 +126,83 @@ sprintf(statFile, "/proc/%d/stat", pid);
         exit(1);
     }
 
-
-
-}
-
-
-
-
-
-
-/*
-if(dir ==NULL){
-    DIR *dir;
-    dir = opendir("/proc");
-    struct dirent *entry;
-    long pid;
-    FILE *fp;
-    char path[6969], cmdline[6969], *endptr;
-
-    if (!dir) {
-        perror("Failed to open directory /proc");
-        exit(1);
+     if((read = getline(&line, &len, fp)) == -1) {
+        perror("getline");
+        exit(-1);
     }
-}
 
-while ((entry = readdir(dir)) != NULL) {
-        // Check if the entry is a directory and its name is a number (process ID)
-        if (entry->d_type == DT_DIR && (pid = strtol(entry->d_name, &endptr, 10)) > 0 && *endptr == '\0') {
-            sprintf(path, "/proc/%ld/status", pid); // Construct the path to the status file
-            fp = fopen(path, "r"); // Open the status file
-            if (fp) {
-                // Read the TTY and CMD information from the status file
-                
-                //Bryant OHallron Computer Systems
-                char tty[20] = "", cmd[1024] = "";
-                while (fgets(cmdline, sizeof(cmdline), fp)) {
-                    //https://man7.org/linux/man-pages/man4/tty.4.html
-                    if (strncmp(cmdline, "Tty:", 4) == 0) {
-                        cmdline[strcspn(cmdline, "\n")] = 0; // Remove the newline character
-                        sprintf(tty, "%s", cmdline+5);
-                    }
-                    if (strncmp(cmdline, "Name:", 5) == 0) {
-                        cmdline[strcspn(cmdline, "\n")] = 0; // Remove the newline character
-                        sprintf(cmd, "%s", cmdline+6);
-                    }
-                }
+    //https://www.gnu.org/gnu/gnu.html
+    if(sscanf(line, "%*d %*s %c %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %lu %lu", &state, &utime, &stime) != 3) {
+        fprintf(stderr, "Error: Failed to parse %s\n", statFile);
+        exit(-1);
+    }
 
-                fclose(fp);
-                //https://www.ibm.com/docs/en/i/7.3?topic=ssw_ibm_i_73/apis/stat.html
-                sprintf(path, "/proc/%ld/stat", pid); // Construct the path to the stat file
-                fp = fopen(path, "r"); // Open the stat file
-                if (fp) {
-                    // Read the process command name and process time information from the stat file
-                    char cmdname[1024] = "";
-                    unsigned long utime = 0, stime = 0;
-                    fscanf(fp, "%ld", &pid);
-                    fscanf(fp, " %s", cmdname);
-                    fscanf(fp, " %*c"); // skip '('
-                    while (fscanf(fp, "%lu %lu", &utime, &stime) == 2) {}
-                    fclose(fp);
-                    //calculate the CPU usage of a process or device in hours
-                    //calculate the CPU usage of a process or device in minutes
-                    //calculate the CPU usage of a process or device in seconds
-                    printf("%-10ld %-10s %02ld:%02ld:%02ld %-s\n", pid, tty, (utime+stime)/3600, (utime+stime)/60%60, (utime+stime)%60, cmd);
-                }
-            }
-        }
+        
+    printf("%d\t %c\t", pid, state);
+
+
     
-    closedir(dir);
+    if(UFlag == 1) {
+        printf("%lu\t", utime);
+    }
+    if(SFlag == 1) {
+        printf("%lu\t", stime);
+    }
 
-
-
-
-    return 0;
+   
+    free(line);
+    fclose(fp);
 }
-*/
+
+void parseStatm(int pid) {
+    char statmFile[1024];
+    int size;
+    char cmdlineFile[1024];
+    char *cmdline = NULL;
+    size_t len = 0;
+    ssize_t read;
+    //Open the statm file
+    sprintf(statmFile, "/proc/%d/statm", pid);
+    FILE *fp = fopen(statmFile, "r");
+    if(fp == NULL) {
+        perror("open");
+        exit(-1);
+    }
+    //Parse the file
+    if(fscanf(fp, "%d", &size) != 1) {
+        fprintf(stderr, "Error: Failed to parse %s\n", statmFile);
+        exit(-1);
+    }
+    //Print the output
+    if(vFlag == 1) {
+        printf("%d\t", size);
+    }
+    if(cFlag == 1) {
+        sprintf(cmdlineFile, "/proc/%d/cmdline", pid);
+        FILE *fp_cmdline = fopen(cmdlineFile, "r");
+        if(fp_cmdline == NULL) {
+            perror("open");
+            exit(-1);
+        }
+        if((read = getline(&cmdline, &len, fp_cmdline)) != -1) {
+            printf("%s\t", cmdline);
+        } else {
+            printf("\t");
+        }
+        free(cmdline);
+        fclose(fp_cmdline);
+    }
+    printf("\n");
+    fclose(fp);
+}
+
+
+
+
+
+
+
+
+
+
+
