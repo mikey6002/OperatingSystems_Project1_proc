@@ -69,10 +69,6 @@ if(pid ==0){
 return 0;
 }
 
-
-
-
-
 void getProcessList(){
     DIR *dir;
     struct dirent *entry;
@@ -91,12 +87,21 @@ void getProcessList(){
 
     while ((entry = readdir(dir)) != NULL) {
         if(entry->d_type != DT_DIR) {
-        if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            
-        
+            long pid = strtol(entry->d_name, &endptr, 10);
+        if(pid > 0 && *endptr == '\0') {
+            //Concatenate the path of the entry to the /proc directory
+            char path[1024];
+            strcpy(path, "/proc/");
+            strcat(path, entry->d_name);
+            //Get the status of the entry
+            if(stat(path, &statbuf) == -1) {
+            perror("stat");
+            exit(-1);
+            }
+         
+            }
         }
     }
-}
     close(dir);
 }
 
