@@ -7,45 +7,45 @@
 #include <string.h>
 #include <unistd.h>
 
+    char *user;
+    int pid;
+    int sFlag = 0;
+    int UFlag = 1;
+    int SFlag = 0;
+    int vFlag = 0;
+    int cFlag = 1;
 
 
 
-int main(int argc, char **argv){
-    int state =0;
-    int user_time=1;
+int main(int argc, char *argv[]){
+
     int option;
-    int system_time=1;
-    int virtualm =1;
-    int pid = -1;
-    int command_line =1;
-    int display_pid = 0;
     
     //https://linux.die.net/man/3/optarg
     while((option=getopt(argc,argv,"sUSvcp:"))!=1){
         switch(option){
             case 'p':
-                display_pid =1;
                 pid=atoi(optarg);
                 break;
                 
             case 's':
-                state =1;
+                sFlag = 1;
                 break;
             
             case 'U':
-                user_time =0;
+              UFlag = 0;
                  break;
 
             case 'S':
-                system_time=1;
+                SFlag = 1;
                 break;
         
             case 'v':
-                virtualm=1;
+                vFlag = 1;
                 break;
 
             case 'c':
-                command_line =0;
+                  cFlag = 0;
                 break;
 
             case '?':
@@ -58,7 +58,49 @@ if (optind >= argc) {
         fprintf(stderr, "Expected argument after options\n");
         exit(1);
     }
+
+
+if(pid ==0){
+    user = getenv("USER");
+    getProcessList(user);
+}else{
+    
 }
+return 0;
+}
+
+
+
+
+
+void getProcessList(){
+    DIR *dir;
+    struct dirent *entry;
+    struct stat statbuf;
+    dir = opendir("/proc");
+    FILE *fp;
+    char path[6969], cmdline[6969], *endptr;
+    long process_id;
+
+
+
+      if (!dir) {
+        perror("Failed to open directory /proc");
+        exit(1);
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        if(entry->d_type != DT_DIR) {
+        if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            
+        
+        }
+    }
+}
+    close(dir);
+}
+
+
 
 
 
