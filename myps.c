@@ -70,11 +70,14 @@ if(pid ==0){
     user = getenv("USER");
     getProcessList(user);
 }else{
-    
+     parseStat(pid);
+     parseStatm(pid);
 }
 return 0;
 }
 
+//goes through process owned by current user and each process it finds canns parsestat and parsestatm
+//opens proc dir parses dir check running processes and check pid get uid and compare
 void getProcessList() {
     DIR *dir;
     struct dirent *entry;
@@ -102,6 +105,7 @@ void getProcessList() {
             exit(-1);
             }
         //Check if the entry is owned by the current user
+        //https://man7.org/linux/man-pages/man2/getuid.2.html
         if(statbuf.st_uid == getuid()) {
             parseStat(pid);
             parseStatm(pid);
@@ -113,6 +117,7 @@ void getProcessList() {
 }
 
 // modified from the reading https://mentorembedded.github.io/advancedlinuxprogramming/alp-folder/alp-ch07-proc-filesystem.pdf
+//reads state file of process and gets state,user time, and system time info
 void parseStat(int pid){
     char statFile[6969];
     char *line = NULL;
@@ -129,35 +134,33 @@ void parseStat(int pid){
         perror("Failed to open file");
         exit(1);
     }
-
+    //reads line from state and stores the number of charaters 
     if((read = getline(&line, &len, fp)) == -1) {
         perror("getline error");
         exit(-1);
     }
 
     //https://www.gnu.org/gnu/gnu.html
+    // Parses the first line of the stat file using sscanf and assigns the values to state, utime, stime, cutime, and cstime
     if(sscanf(line, "%*d %*s %c %*d %*d %*d %*d %*d %*d %*d %*d %*d %lu %lu %lu %lu", &state, &utime, &stime, &cutime, &cstime) != 5) {
         fprintf(stderr, "Error: Failed to parse %s\n", statFile);
         exit(-1);
     }
 
-    printf("%d\t %c\t", pid, state);
+    printf("p: %d\t %c\t", pid, state);
 
     if(UFlag == 1) {
-        printf("%lu\t", utime);
+        printf("U: %lu\t", utime);
     }
     if(SFlag == 1) {
         printf("%lu\t", stime);
-    }
-
-    if(vFlag == 1) {
-        printf("%lu\t", cutime+cstime);
     }
 
     free(line);
     fclose(fp);
 }
 
+//reads statm file and gets virtual memory size info 
 void parseStatm(int pid) {
     char statmFile[6969];
     int size;
@@ -179,7 +182,7 @@ void parseStatm(int pid) {
     }
     //Print the output
     if(vFlag == 1) {
-        printf("%d\t", size);
+        printf("V: %d\t", size);
     }
     if(cFlag == 1) {
         sprintf(cmdlineFile, "/proc/%d/cmdline", pid);
@@ -189,7 +192,7 @@ void parseStatm(int pid) {
             exit(-1);
         }
         if((read = getline(&cmdline, &len, fp_cmdline)) != -1) {
-            printf("%s\t", cmdline);
+            printf("cmdline:%s\t", cmdline);
         } else {
             printf("\t");
         }
