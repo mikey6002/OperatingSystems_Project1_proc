@@ -9,10 +9,14 @@
 #include<errno.h>
 #include <sys/stat.h>
 
+
+//decalre functions
     void getProcessList();
     void parseStat(int pid);
     void parseStatm(int pid);
 
+
+//global variables
     char *user;
     int pid;
     int sFlag = 0;
@@ -32,6 +36,7 @@ int main(int argc, char *argv[]){
         switch(option){
             case 'p':
                 pid=atoi(optarg);
+                printf("-p %d\n", pid);
                 break;
                 
             case 's':
@@ -107,9 +112,9 @@ void getProcessList() {
     closedir(dir);
 }
 
-
+// modified from the reading https://mentorembedded.github.io/advancedlinuxprogramming/alp-folder/alp-ch07-proc-filesystem.pdf
 void parseStat(int pid){
-    char statFile[1024];
+    char statFile[6969];
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
@@ -126,7 +131,7 @@ void parseStat(int pid){
     }
 
     if((read = getline(&line, &len, fp)) == -1) {
-        perror("getline");
+        perror("getline error");
         exit(-1);
     }
 
@@ -154,9 +159,9 @@ void parseStat(int pid){
 }
 
 void parseStatm(int pid) {
-    char statmFile[1024];
+    char statmFile[6969];
     int size;
-    char cmdlineFile[1024];
+    char cmdlineFile[6969];
     char *cmdline = NULL;
     size_t len = 0;
     ssize_t read;
