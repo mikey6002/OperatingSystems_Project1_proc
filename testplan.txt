@@ -1,0 +1,5 @@
+//my first plan was to make sure it ran correctly without any arguements
+then I test my program manually by typing all the flags to see if it works
+after that I test each flag one by one to double check that it is working as intentioned. When I was done with that 
+I did pid and a pid to makesure that only the info of the pid typed in was showing. 
+I wish I knew how to run the testfiles but I have no clue and writing this with very little to no sleep 
